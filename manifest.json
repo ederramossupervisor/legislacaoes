@@ -4,8 +4,8 @@
   "description": "Consulta de legislação da educação capixaba",
   "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#1e3a8a",
+  "background_color": "#EDEAE0",
+  "theme_color": "#16212E",
   "orientation": "portrait-primary",
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
