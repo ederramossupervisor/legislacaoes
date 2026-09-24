@@ -1,5 +1,13 @@
 let legislacaoEditando = null;
 
+const TIPOS_RELACAO = [
+  { valor: "revoga", label: "Revoga", inverso: "Revogada por" },
+  { valor: "altera", label: "Altera", inverso: "Alterada por" },
+  { valor: "regulamenta", label: "Regulamenta", inverso: "Regulamentada por" },
+  { valor: "complementa", label: "Complementa", inverso: "Complementada por" },
+  { valor: "relacionada", label: "Relacionada com", inverso: "Relacionada com" }
+];
+
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btnAdmin").onclick = abrirAdmin;
   document.getElementById("btnNovaLegislacao").onclick = () => abrirFormulario(null);
@@ -8,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("formTipo").addEventListener("change", (e) => {
     document.getElementById("campoTipoOutros").classList.toggle("oculto", e.target.value !== "outros");
   });
+  configurarBuscaRelacao();
 });
 
 async function abrirAdmin() {
@@ -78,6 +87,18 @@ function abrirFormulario(doc) {
   arquivoAtual.innerHTML = doc?.arquivo_url
     ? `Arquivo atual: <a href="${doc.arquivo_url}" target="_blank">${doc.arquivo_nome || "abrir PDF"}</a> (selecione um novo arquivo só se quiser substituir)`
     : "";
+
+  const secaoRelacoes = document.getElementById("secaoRelacoes");
+  if (doc) {
+    secaoRelacoes.classList.remove("oculto");
+    carregarRelacoes(doc.id).then(lista => renderRelacoes(lista, doc.id));
+  } else {
+    secaoRelacoes.classList.add("oculto");
+    document.getElementById("listaRelacoes").innerHTML = "";
+  }
+
+  document.getElementById("relacaoBusca").value = "";
+  document.getElementById("relacaoResultados").classList.add("oculto");
 
   document.getElementById("modalLegislacao").classList.remove("oculto");
 }
@@ -156,4 +177,97 @@ async function excluirLegislacao(doc) {
   if (error) { alert("Erro ao excluir: " + error.message); return; }
 
   abrirAdmin();
+}
+
+// ---------- RELAÇÕES ENTRE LEGISLAÇÕES ----------
+async function carregarRelacoes(legislacaoId) {
+  const { data } = await supabaseClient
+    .from("legislacao_relacoes")
+    .select("id, tipo_relacao, legislacao_id, relacionada_id, origem:legislacao_id(titulo,numero,ano), destino:relacionada_id(titulo,numero,ano)")
+    .or(`legislacao_id.eq.${legislacaoId},relacionada_id.eq.${legislacaoId}`);
+  return data || [];
+}
+
+function renderRelacoes(lista, legislacaoId) {
+  const container = document.getElementById("listaRelacoes");
+
+  if (!lista.length) {
+    container.innerHTML = `<p class="vazio-relacao">Nenhuma relação cadastrada.</p>`;
+    return;
+  }
+
+  container.innerHTML = lista.map(rel => {
+    const souOrigem = rel.legislacao_id === legislacaoId;
+    const outro = souOrigem ? rel.destino : rel.origem;
+    const tipoInfo = TIPOS_RELACAO.find(t => t.valor === rel.tipo_relacao);
+    const rotulo = souOrigem ? tipoInfo.label : tipoInfo.inverso;
+    return `
+      <div class="linha-relacao" data-id="${rel.id}">
+        <span>${rotulo}: ${outro?.numero ? "nº " + outro.numero : ""}${outro?.ano ? "/" + outro.ano : ""} — ${outro?.titulo || ""}</span>
+        <button class="btnRemoverRelacao">Remover</button>
+      </div>
+    `;
+  }).join("");
+
+  container.querySelectorAll(".btnRemoverRelacao").forEach(btn => {
+    const linha = btn.closest(".linha-relacao");
+    btn.onclick = async () => {
+      await supabaseClient.from("legislacao_relacoes").delete().eq("id", linha.dataset.id);
+      const atualizadas = await carregarRelacoes(legislacaoId);
+      renderRelacoes(atualizadas, legislacaoId);
+    };
+  });
+}
+
+function configurarBuscaRelacao() {
+  let timeoutRelacao;
+  document.getElementById("relacaoBusca").addEventListener("input", (e) => {
+    clearTimeout(timeoutRelacao);
+    const termo = e.target.value.trim();
+    const resultados = document.getElementById("relacaoResultados");
+
+    if (termo.length < 2 || !legislacaoEditando) {
+      resultados.classList.add("oculto");
+      return;
+    }
+
+    timeoutRelacao = setTimeout(async () => {
+      const { data } = await supabaseClient
+        .from("legislacoes")
+        .select("id, titulo, numero, ano, tipo")
+        .neq("id", legislacaoEditando.id)
+        .or(`titulo.ilike.%${termo}%,numero.ilike.%${termo}%`)
+        .limit(8);
+
+      if (!data || !data.length) {
+        resultados.innerHTML = `<p class="vazio-relacao">Nada encontrado.</p>`;
+        resultados.classList.remove("oculto");
+        return;
+      }
+
+      resultados.innerHTML = data.map(doc => `
+        <div class="item-resultado-relacao" data-id="${doc.id}">
+          ${CATEGORIAS.find(c => c.tipo === doc.tipo)?.sigla || "OUT"} ${doc.numero ? "nº " + doc.numero : ""}${doc.ano ? "/" + doc.ano : ""} — ${doc.titulo}
+        </div>
+      `).join("");
+      resultados.classList.remove("oculto");
+
+      resultados.querySelectorAll(".item-resultado-relacao").forEach(item => {
+        item.onclick = async () => {
+          const tipo = document.getElementById("relacaoTipo").value;
+          const { error } = await supabaseClient.from("legislacao_relacoes").insert({
+            legislacao_id: legislacaoEditando.id,
+            relacionada_id: item.dataset.id,
+            tipo_relacao: tipo
+          });
+          if (error && error.code !== "23505") alert("Erro ao adicionar relação: " + error.message);
+
+          document.getElementById("relacaoBusca").value = "";
+          resultados.classList.add("oculto");
+          const atualizadas = await carregarRelacoes(legislacaoEditando.id);
+          renderRelacoes(atualizadas, legislacaoEditando.id);
+        };
+      });
+    }, 300);
+  });
 }
