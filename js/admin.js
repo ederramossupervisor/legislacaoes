@@ -33,16 +33,19 @@ function renderListaAdmin(lista) {
     return;
   }
 
+  const ICONE_EDITAR = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>`;
+  const ICONE_EXCLUIR = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>`;
+
   container.innerHTML = lista.map(doc => `
     <div class="linha-admin" data-id="${doc.id}">
       <div>
-        <strong>${nomeTipo(doc)} ${doc.numero ? "nº " + doc.numero : ""}</strong>
-        <span class="ano-admin">${doc.ano}</span>
+        <span class="sigla">${CATEGORIAS.find(c => c.tipo === doc.tipo)?.sigla || "OUT"}</span>
+        ${doc.numero ? "nº " + doc.numero : ""} <span class="rotulo-ano">${doc.ano}</span>
         <p class="titulo-doc">${doc.titulo}</p>
       </div>
       <div class="acoes-admin">
-        <button class="btnEditar">✏️ Editar</button>
-        <button class="btnExcluir">🗑️ Excluir</button>
+        <button class="btnEditar">${ICONE_EDITAR} Editar</button>
+        <button class="btnExcluir">${ICONE_EXCLUIR} Excluir</button>
       </div>
     </div>
   `).join("");
