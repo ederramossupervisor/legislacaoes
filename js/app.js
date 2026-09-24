@@ -166,8 +166,38 @@ async function renderDocumentos(lista, idContainer) {
     favoritosIds = new Set((data || []).map(f => f.legislacao_id));
   }
 
+  const idsLista = lista.map(d => d.id);
+  const { data: relacoesData } = await supabaseClient
+    .from("legislacao_relacoes")
+    .select("tipo_relacao, legislacao_id, relacionada_id, origem:legislacao_id(titulo,numero,ano), destino:relacionada_id(titulo,numero,ano)")
+    .or(`legislacao_id.in.(${idsLista.join(",")}),relacionada_id.in.(${idsLista.join(",")})`);
+
+  const TIPOS_RELACAO_LABEL = {
+    revoga: ["Revoga", "Revogada por"],
+    altera: ["Altera", "Alterada por"],
+    regulamenta: ["Regulamenta", "Regulamentada por"],
+    complementa: ["Complementa", "Complementada por"],
+    relacionada: ["Relacionada com", "Relacionada com"]
+  };
+
   container.innerHTML = lista.map(doc => {
     const favoritado = favoritosIds.has(doc.id);
+
+    const relacoesDoc = (relacoesData || []).filter(
+      r => r.legislacao_id === doc.id || r.relacionada_id === doc.id
+    );
+    const blocoRelacoes = relacoesDoc.length ? `
+      <div class="relacoes-doc">
+        ${relacoesDoc.map(r => {
+          const souOrigem = r.legislacao_id === doc.id;
+          const outro = souOrigem ? r.destino : r.origem;
+          const [label, labelInverso] = TIPOS_RELACAO_LABEL[r.tipo_relacao];
+          const rotulo = souOrigem ? label : labelInverso;
+          return `<span class="tag-relacao">${rotulo}: ${outro?.numero ? "nº " + outro.numero : ""}${outro?.ano ? "/" + outro.ano : ""}</span>`;
+        }).join("")}
+      </div>
+    ` : "";
+
     return `
     <div class="card-documento" data-id="${doc.id}">
       <h3>
@@ -176,6 +206,7 @@ async function renderDocumentos(lista, idContainer) {
       </h3>
       <p class="titulo-doc">${doc.titulo || ""}</p>
       <p class="assunto-doc">${doc.assunto || ""}</p>
+      ${blocoRelacoes}
       <div class="acoes-doc">
         <button class="btnAbrir" ${!doc.arquivo_url ? "disabled" : ""}>${ICONES.abrir} Abrir PDF</button>
         <button class="btnBaixar" ${!doc.arquivo_url ? "disabled" : ""}>${ICONES.baixar} Baixar</button>
