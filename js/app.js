@@ -173,12 +173,18 @@ async function renderDocumentos(lista, idContainer) {
     .or(`legislacao_id.in.(${idsLista.join(",")}),relacionada_id.in.(${idsLista.join(",")})`);
 
   const TIPOS_RELACAO_LABEL = {
-    revoga: ["Revoga", "Revogada por"],
-    altera: ["Altera", "Alterada por"],
-    regulamenta: ["Regulamenta", "Regulamentada por"],
-    complementa: ["Complementa", "Complementada por"],
-    relacionada: ["Relacionada com", "Relacionada com"]
-  };
+  revoga: ["Revoga", "Revogada por"],
+  revoga_parcialmente: ["Revoga parcialmente", "Revogada parcialmente por"],
+  altera: ["Altera", "Alterada por"],
+  acrescenta: ["Acrescenta dispositivo a", "Acrescida por"],
+  regulamenta: ["Regulamenta", "Regulamentada por"],
+  complementa: ["Complementa", "Complementada por"],
+  suspende: ["Suspende", "Suspensa por"],
+  prorroga: ["Prorroga", "Prorrogada por"],
+  republica: ["Republica", "Republicada por"],
+  convalida: ["Convalida", "Convalidada por"],
+  relacionada: ["Relacionada com", "Relacionada com"]
+};
 
   container.innerHTML = lista.map(doc => {
     const favoritado = favoritosIds.has(doc.id);
