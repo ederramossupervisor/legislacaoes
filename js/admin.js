@@ -2,9 +2,15 @@ let legislacaoEditando = null;
 
 const TIPOS_RELACAO = [
   { valor: "revoga", label: "Revoga", inverso: "Revogada por" },
+  { valor: "revoga_parcialmente", label: "Revoga parcialmente", inverso: "Revogada parcialmente por" },
   { valor: "altera", label: "Altera", inverso: "Alterada por" },
+  { valor: "acrescenta", label: "Acrescenta dispositivo a", inverso: "Acrescida por" },
   { valor: "regulamenta", label: "Regulamenta", inverso: "Regulamentada por" },
   { valor: "complementa", label: "Complementa", inverso: "Complementada por" },
+  { valor: "suspende", label: "Suspende", inverso: "Suspensa por" },
+  { valor: "prorroga", label: "Prorroga", inverso: "Prorrogada por" },
+  { valor: "republica", label: "Republica", inverso: "Republicada por" },
+  { valor: "convalida", label: "Convalida", inverso: "Convalidada por" },
   { valor: "relacionada", label: "Relacionada com", inverso: "Relacionada com" }
 ];
 
