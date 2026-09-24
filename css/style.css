@@ -299,3 +299,31 @@ main { max-width: 760px; margin: 0 auto; padding: 0 1.5rem 3rem; }
   .admin-topo button { background: var(--brass); color: #12181F; }
   .modal-conteudo button { background: var(--brass); color: #12181F; }
 }
+
+.secao-relacoes { margin-top: 0.4rem; padding-top: 0.6rem; border-top: 1px solid var(--line); }
+.lista-relacoes { display: flex; flex-direction: column; gap: 0.4rem; margin: 0.4rem 0 0.6rem; }
+.linha-relacao {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.82rem; gap: 0.5rem;
+}
+.linha-relacao .btnRemoverRelacao {
+  background: none; border: none; color: var(--seal); font-size: 0.78rem; cursor: pointer; flex-shrink: 0;
+}
+.vazio-relacao { font-size: 0.82rem; color: var(--texto-suave); }
+
+.form-relacao { display: flex; flex-direction: column; gap: 0.4rem; position: relative; }
+.relacao-resultados {
+  position: absolute; top: 100%; left: 0; right: 0;
+  background: var(--paper-raised); border: 1px solid var(--line);
+  border-radius: 3px; max-height: 180px; overflow-y: auto; z-index: 5;
+}
+.item-resultado-relacao {
+  padding: 0.5rem 0.7rem; font-size: 0.82rem; cursor: pointer; border-bottom: 1px solid var(--line);
+}
+.item-resultado-relacao:hover { background: var(--paper); color: var(--brass); }
+
+.relacoes-doc { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+.tag-relacao {
+  font-size: 0.75rem; color: var(--texto-suave);
+  border: 1px solid var(--line); border-radius: 2px; padding: 0.15rem 0.5rem;
+}
