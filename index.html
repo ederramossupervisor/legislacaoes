@@ -109,7 +109,22 @@
     <label>Arquivo PDF</label>
     <input type="file" id="formArquivo" accept="application/pdf">
     <p id="arquivoAtual" class="arquivo-atual"></p>
-
+    <div id="secaoRelacoes" class="secao-relacoes oculto">
+      <label>Relações com outras legislações</label>
+      <div id="listaRelacoes" class="lista-relacoes"></div>
+    
+      <div class="form-relacao">
+        <select id="relacaoTipo">
+          <option value="revoga">Revoga</option>
+          <option value="altera">Altera</option>
+          <option value="regulamenta">Regulamenta</option>
+          <option value="complementa">Complementa</option>
+          <option value="relacionada">Relacionada com</option>
+        </select>
+        <input type="text" id="relacaoBusca" placeholder="Buscar legislação pelo número ou título...">
+        <div id="relacaoResultados" class="relacao-resultados oculto"></div>
+      </div>
+    </div>
     <div class="acoes-form">
       <button id="btnSalvarLegislacao">Salvar</button>
       <button id="btnCancelarForm" class="secundario">Cancelar</button>
