@@ -2,114 +2,55 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Legislação da Educação Capixaba</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1e3a8a">
+<meta name="theme-color" content="#16212E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <header class="topo">
-  <h1>📚 Legislação da Educação Capixaba</h1>
-  <div class="acoes-topo">
-    <button id="btnFavoritos" class="oculto">⭐ Meus favoritos</button>
-    <button id="btnAdmin" class="oculto">⚙ Administração</button>
+  <div class="marca">
+    <span class="marca-titulo">Legislação</span>
+    <span class="marca-subtitulo">Educação Capixaba</span>
+  </div>
+  <nav class="acoes-topo">
+    <button id="btnFavoritos" class="oculto">Meus favoritos</button>
+    <button id="btnAdmin" class="oculto">Administração</button>
     <button id="btnLogin">Entrar</button>
     <button id="btnLogout" class="oculto">Sair</button>
-  </div>
+  </nav>
 </header>
 
 <div class="barra-busca">
-  <input type="text" id="inputBusca" placeholder="🔎 Pesquisar legislação (número, assunto, ano...)">
+  <span class="icone-busca" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  </span>
+  <input type="text" id="inputBusca" placeholder="Pesquisar por número, título, assunto ou ano">
 </div>
 
 <main id="conteudo">
-  <!-- Breadcrumb de navegação -->
   <nav id="breadcrumb" class="breadcrumb oculto"></nav>
 
-  <!-- Tela 1: categorias -->
-  <section id="telaCategorias" class="grid-categorias"></section>
-
-  <!-- Tela 2: anos -->
-  <section id="telaAnos" class="grid-anos oculto"></section>
-
-  <!-- Tela 3: lista de documentos -->
+  <section id="telaCategorias" class="indice"></section>
+  <section id="telaAnos" class="indice oculto"></section>
   <section id="telaDocumentos" class="lista-documentos oculto"></section>
-
-  <!-- Tela 4: resultados de busca -->
   <section id="telaBusca" class="lista-documentos oculto"></section>
-
-  <!-- Tela 5: favoritos -->
   <section id="telaFavoritos" class="lista-documentos oculto"></section>
-  <!-- Tela 6: administração -->
+
   <section id="telaAdmin" class="oculto">
     <div class="admin-topo">
-      <h2>⚙ Gerenciar Legislação</h2>
+      <h2>Gerenciar legislação</h2>
       <button id="btnNovaLegislacao">+ Nova legislação</button>
     </div>
     <div id="listaAdmin" class="lista-admin"></div>
   </section>
-
-  <!-- Modal de cadastro/edição -->
-  <div id="modalLegislacao" class="modal oculto">
-    <div class="modal-conteudo modal-form">
-      <h2 id="tituloModalForm">Nova legislação</h2>
-
-      <label>Tipo</label>
-      <select id="formTipo">
-        <option value="constituicao_federal">Constituição Federal</option>
-        <option value="emenda_constitucional">Emenda Constitucional</option>
-        <option value="lei">Lei</option>
-        <option value="medida_provisoria">Medida Provisória</option>
-        <option value="decreto">Decreto</option>
-        <option value="portaria">Portaria</option>
-        <option value="instrucao_normativa">Instrução Normativa</option>
-        <option value="resolucao">Resolução</option>
-        <option value="ci">C.I.</option>
-        <option value="outros">Outros</option>
-      </select>
-
-      <div id="campoTipoOutros" class="oculto">
-        <label>Nome do tipo (categoria "Outros")</label>
-        <input type="text" id="formTipoOutros" placeholder="Ex: Orientação Técnica">
-      </div>
-
-      <label>Número</label>
-      <input type="text" id="formNumero" placeholder="Ex: 168-R">
-
-      <label>Título *</label>
-      <input type="text" id="formTitulo" placeholder="Ex: Portaria nº 168-R">
-
-      <label>Assunto</label>
-      <input type="text" id="formAssunto" placeholder="Assunto do documento">
-
-      <label>Ano *</label>
-      <input type="number" id="formAno" placeholder="2026">
-
-      <label>Data do documento</label>
-      <input type="date" id="formData">
-
-      <label>Ementa</label>
-      <textarea id="formEmenta" rows="2"></textarea>
-
-      <label>Observações</label>
-      <textarea id="formObservacoes" rows="2"></textarea>
-
-      <label>Arquivo PDF</label>
-      <input type="file" id="formArquivo" accept="application/pdf">
-      <p id="arquivoAtual" class="arquivo-atual"></p>
-
-      <div class="acoes-form">
-        <button id="btnSalvarLegislacao">Salvar</button>
-        <button id="btnCancelarForm" class="secundario">Cancelar</button>
-      </div>
-      <p id="formErro" class="erro"></p>
-    </div>
-  </div>
 </main>
 
-<!-- Modal de login -->
 <div id="modalLogin" class="modal oculto">
   <div class="modal-conteudo">
     <h2>Entrar</h2>
@@ -118,6 +59,62 @@
     <button id="btnConfirmarLogin">Entrar</button>
     <button id="btnFecharModal" class="secundario">Cancelar</button>
     <p id="loginErro" class="erro"></p>
+  </div>
+</div>
+
+<div id="modalLegislacao" class="modal oculto">
+  <div class="modal-conteudo modal-form">
+    <h2 id="tituloModalForm">Nova legislação</h2>
+
+    <label>Tipo</label>
+    <select id="formTipo">
+      <option value="constituicao_federal">Constituição Federal</option>
+      <option value="emenda_constitucional">Emenda Constitucional</option>
+      <option value="lei">Lei</option>
+      <option value="medida_provisoria">Medida Provisória</option>
+      <option value="decreto">Decreto</option>
+      <option value="portaria">Portaria</option>
+      <option value="instrucao_normativa">Instrução Normativa</option>
+      <option value="resolucao">Resolução</option>
+      <option value="ci">C.I.</option>
+      <option value="outros">Outros</option>
+    </select>
+
+    <div id="campoTipoOutros" class="oculto">
+      <label>Nome do tipo (categoria "Outros")</label>
+      <input type="text" id="formTipoOutros" placeholder="Ex: Orientação Técnica">
+    </div>
+
+    <label>Número</label>
+    <input type="text" id="formNumero" placeholder="Ex: 168-R">
+
+    <label>Título *</label>
+    <input type="text" id="formTitulo" placeholder="Ex: Portaria nº 168-R">
+
+    <label>Assunto</label>
+    <input type="text" id="formAssunto" placeholder="Assunto do documento">
+
+    <label>Ano *</label>
+    <input type="number" id="formAno" placeholder="2026">
+
+    <label>Data do documento</label>
+    <input type="date" id="formData">
+
+    <label>Ementa</label>
+    <textarea id="formEmenta" rows="2"></textarea>
+
+    <label>Observações</label>
+    <textarea id="formObservacoes" rows="2"></textarea>
+
+    <label>Arquivo PDF</label>
+    <input type="file" id="formArquivo" accept="application/pdf">
+    <p id="arquivoAtual" class="arquivo-atual"></p>
+
+    <div class="acoes-form">
+      <button id="btnSalvarLegislacao">Salvar</button>
+      <button id="btnCancelarForm" class="secundario">Cancelar</button>
+    </div>
+    <p id="formErro" class="erro"></p>
   </div>
 </div>
 
