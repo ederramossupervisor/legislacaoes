@@ -1,15 +1,22 @@
 const CATEGORIAS = [
-  { tipo: "constituicao_federal", nome: "Constituição Federal", icone: "📜" },
-  { tipo: "emenda_constitucional", nome: "Emenda Constitucional", icone: "📃" },
-  { tipo: "lei", nome: "Leis", icone: "⚖️" },
-  { tipo: "medida_provisoria", nome: "Medidas Provisórias", icone: "📝" },
-  { tipo: "decreto", nome: "Decretos", icone: "🏛️" },
-  { tipo: "portaria", nome: "Portarias", icone: "📋" },
-  { tipo: "instrucao_normativa", nome: "Instrução Normativa", icone: "📐" },
-  { tipo: "resolucao", nome: "Resolução", icone: "🗂️" },
-  { tipo: "ci", nome: "C.I.", icone: "✉️" },
-  { tipo: "outros", nome: "Outros", icone: "📁" }
+  { tipo: "constituicao_federal", nome: "Constituição Federal", sigla: "CF" },
+  { tipo: "emenda_constitucional", nome: "Emenda Constitucional", sigla: "EC" },
+  { tipo: "lei", nome: "Leis", sigla: "LEI" },
+  { tipo: "medida_provisoria", nome: "Medidas Provisórias", sigla: "MP" },
+  { tipo: "decreto", nome: "Decretos", sigla: "DEC" },
+  { tipo: "portaria", nome: "Portarias", sigla: "PORT" },
+  { tipo: "instrucao_normativa", nome: "Instrução Normativa", sigla: "IN" },
+  { tipo: "resolucao", nome: "Resolução", sigla: "RES" },
+  { tipo: "ci", nome: "C.I.", sigla: "CI" },
+  { tipo: "outros", nome: "Outros", sigla: "OUT" }
 ];
+
+const ICONES = {
+  abrir: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 3h7v7"/><path d="M21 3l-9 9"/><path d="M21 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg>`,
+  baixar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>`,
+  estrelaVazia: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l2.7 5.9 6.3.6-4.8 4.3 1.4 6.2L12 17l-5.6 3 1.4-6.2L3 9.5l6.3-.6L12 3z"/></svg>`,
+  estrelaCheia: `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6"><path d="M12 3l2.7 5.9 6.3.6-4.8 4.3 1.4 6.2L12 17l-5.6 3 1.4-6.2L3 9.5l6.3-.6L12 3z"/></svg>`
+};
 
 let categoriaAtual = null;
 let anoAtual = null;
@@ -74,13 +81,13 @@ function mostrarTela(id) {
 function renderCategorias() {
   const container = document.getElementById("telaCategorias");
   container.innerHTML = CATEGORIAS.map(cat => `
-    <div class="card-categoria" data-tipo="${cat.tipo}">
-      <span class="icone">${cat.icone}</span>
-      <span class="nome">${cat.nome}</span>
+    <div class="entrada-indice" data-tipo="${cat.tipo}">
+      <span class="sigla">${cat.sigla}</span>
+      <span class="nome-categoria">${cat.nome}</span>
     </div>
   `).join("");
 
-  container.querySelectorAll(".card-categoria").forEach(card => {
+  container.querySelectorAll(".entrada-indice").forEach(card => {
     card.onclick = () => abrirCategoria(card.dataset.tipo);
   });
 
@@ -101,12 +108,17 @@ async function abrirCategoria(tipo) {
 
   const anos = [...new Set(data.map(d => d.ano))];
 
-  const container = document.getElementById("telaAnos");
+    const container = document.getElementById("telaAnos");
   container.innerHTML = anos.length
-    ? anos.map(ano => `<div class="card-ano" data-ano="${ano}">${ano}</div>`).join("")
+    ? anos.map(ano => `
+        <div class="entrada-indice" data-ano="${ano}">
+          <span class="sigla">${ano}</span>
+          <span class="nome-categoria rotulo-ano">${categoriaAtual.nome}</span>
+        </div>
+      `).join("")
     : `<p class="vazio">Nenhum documento cadastrado ainda em ${categoriaAtual.nome}.</p>`;
 
-  container.querySelectorAll(".card-ano").forEach(card => {
+  container.querySelectorAll(".entrada-indice").forEach(card => {
     card.onclick = () => abrirAno(parseInt(card.dataset.ano));
   });
 
@@ -154,18 +166,24 @@ async function renderDocumentos(lista, idContainer) {
     favoritosIds = new Set((data || []).map(f => f.legislacao_id));
   }
 
-  container.innerHTML = lista.map(doc => `
+  container.innerHTML = lista.map(doc => {
+    const favoritado = favoritosIds.has(doc.id);
+    return `
     <div class="card-documento" data-id="${doc.id}">
-      <h3>${nomeTipo(doc)} ${doc.numero ? "nº " + doc.numero : ""} ${doc.ano ? "/" + doc.ano : ""}</h3>
+      <h3>
+        <span class="sigla">${CATEGORIAS.find(c => c.tipo === doc.tipo)?.sigla || "OUT"}</span>
+        ${doc.numero ? "nº " + doc.numero : ""} ${doc.ano ? "/" + doc.ano : ""}
+      </h3>
       <p class="titulo-doc">${doc.titulo || ""}</p>
       <p class="assunto-doc">${doc.assunto || ""}</p>
       <div class="acoes-doc">
-        <button class="btnAbrir" ${!doc.arquivo_url ? "disabled" : ""}>📖 Abrir PDF</button>
-        <button class="btnBaixar" ${!doc.arquivo_url ? "disabled" : ""}>⬇ Baixar</button>
-        <button class="btnFavoritar">${favoritosIds.has(doc.id) ? "★" : "☆"} Favoritar</button>
+        <button class="btnAbrir" ${!doc.arquivo_url ? "disabled" : ""}>${ICONES.abrir} Abrir PDF</button>
+        <button class="btnBaixar" ${!doc.arquivo_url ? "disabled" : ""}>${ICONES.baixar} Baixar</button>
+        <button class="btnFavoritar ${favoritado ? "favoritado" : ""}">${favoritado ? ICONES.estrelaCheia : ICONES.estrelaVazia} Favoritar</button>
       </div>
     </div>
-  `).join("");
+  `;
+  }).join("");
 
   container.querySelectorAll(".card-documento").forEach(card => {
     const id = card.dataset.id;
@@ -176,7 +194,6 @@ async function renderDocumentos(lista, idContainer) {
     card.querySelector(".btnFavoritar").onclick = () => toggleFavorito(doc.id, card.querySelector(".btnFavoritar"));
   });
 }
-
 function nomeTipo(doc) {
   if (doc.tipo === "outros") return doc.tipo_outros || "Outros";
   return CATEGORIAS.find(c => c.tipo === doc.tipo)?.nome || doc.tipo;
@@ -185,19 +202,21 @@ function nomeTipo(doc) {
 async function toggleFavorito(legislacaoId, botao) {
   if (!Auth.isLogado()) { toggleModal(true); return; }
 
-  const jaFavoritado = botao.textContent.includes("★");
+  const jaFavoritado = botao.classList.contains("favoritado");
 
   if (jaFavoritado) {
     await supabaseClient.from("favoritos").delete()
       .eq("usuario_id", Auth.currentUser.id)
       .eq("legislacao_id", legislacaoId);
-    botao.textContent = "☆ Favoritar";
+    botao.classList.remove("favoritado");
+    botao.innerHTML = `${ICONES.estrelaVazia} Favoritar`;
   } else {
     await supabaseClient.from("favoritos").insert({
       usuario_id: Auth.currentUser.id,
       legislacao_id: legislacaoId
     });
-    botao.textContent = "★ Favoritar";
+    botao.classList.add("favoritado");
+    botao.innerHTML = `${ICONES.estrelaCheia} Favoritar`;
   }
 }
 
