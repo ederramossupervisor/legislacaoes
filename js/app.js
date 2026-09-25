@@ -102,13 +102,14 @@ async function abrirCategoria(tipo) {
     .from("legislacoes")
     .select("ano")
     .eq("tipo", tipo)
+    .eq("ativo", true)
     .order("ano", { ascending: false });
 
   if (error) { alert("Erro ao carregar anos."); return; }
 
-  const anos = [...new Set(data.map(d => d.ano))];
+  const anos = [...new Set(data.map(d => d.ano).filter(a => a !== null))];
 
-    const container = document.getElementById("telaAnos");
+  const container = document.getElementById("telaAnos");
   container.innerHTML = anos.length
     ? anos.map(ano => `
         <div class="entrada-indice" data-ano="${ano}">
@@ -127,7 +128,6 @@ async function abrirCategoria(tipo) {
     { label: categoriaAtual.nome, acao: () => abrirCategoria(tipo) }
   ]);
 }
-
 async function abrirAno(ano) {
   anoAtual = ano;
 
@@ -136,6 +136,7 @@ async function abrirAno(ano) {
     .select("*")
     .eq("tipo", categoriaAtual.tipo)
     .eq("ano", ano)
+    .eq("ativo", true)
     .order("numero", { ascending: false });
 
   if (error) { alert("Erro ao carregar documentos."); return; }
@@ -260,7 +261,7 @@ async function toggleFavorito(legislacaoId, botao) {
 // ---------- BUSCA GLOBAL ----------
 async function buscarLegislacoes(termo) {
   const termoNum = parseInt(termo);
-  let query = supabaseClient.from("legislacoes").select("*").limit(50);
+  let query = supabaseClient.from("legislacoes").select("*").eq("ativo", true).limit(50);
 
   if (!isNaN(termoNum) && termo.length === 4) {
     query = query.eq("ano", termoNum);
@@ -284,8 +285,9 @@ async function mostrarFavoritos() {
 
   const { data, error } = await supabaseClient
     .from("favoritos")
-    .select("legislacao_id, legislacoes(*)")
-    .eq("usuario_id", Auth.currentUser.id);
+    .select("legislacao_id, legislacoes!inner(*)")
+    .eq("usuario_id", Auth.currentUser.id)
+    .eq("legislacoes.ativo", true);
 
   if (error) { alert("Erro ao carregar favoritos."); return; }
 
