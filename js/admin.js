@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btnNovaLegislacao").onclick = () => abrirFormulario(null);
   document.getElementById("btnCancelarForm").onclick = fecharFormulario;
   document.getElementById("btnSalvarLegislacao").onclick = salvarLegislacao;
+  document.getElementById("btnSincronizar").onclick = sincronizar;
   document.getElementById("formTipo").addEventListener("change", (e) => {
     document.getElementById("campoTipoOutros").classList.toggle("oculto", e.target.value !== "outros");
   });
@@ -36,6 +37,7 @@ async function abrirAdmin() {
   if (error) { alert("Erro ao carregar legislações."); return; }
 
   renderListaAdmin(data);
+  await carregarUltimaSincronizacao();
   mostrarTela("telaAdmin");
   atualizarBreadcrumb([{ label: "Administração", acao: abrirAdmin }]);
 }
@@ -55,7 +57,8 @@ function renderListaAdmin(lista) {
     <div class="linha-admin" data-id="${doc.id}">
       <div>
         <span class="sigla">${CATEGORIAS.find(c => c.tipo === doc.tipo)?.sigla || "OUT"}</span>
-        ${doc.numero ? "nº " + doc.numero : ""} <span class="rotulo-ano">${doc.ano}</span>
+        ${doc.numero ? "nº " + doc.numero : ""} <span class="rotulo-ano">${doc.ano ?? "sem ano"}</span>
+        ${!doc.ativo ? '<span class="rotulo-inativo">inativo</span>' : ""}
         <p class="titulo-doc">${doc.titulo}</p>
       </div>
       <div class="acoes-admin">
@@ -183,6 +186,88 @@ async function excluirLegislacao(doc) {
   if (error) { alert("Erro ao excluir: " + error.message); return; }
 
   abrirAdmin();
+}
+
+// ---------- SINCRONIZAÇÃO COM O DRIVE ----------
+async function sincronizar() {
+  const btn = document.getElementById("btnSincronizar");
+  const resultado = document.getElementById("resultadoSincronizacao");
+
+  btn.disabled = true;
+  btn.textContent = "Sincronizando...";
+  resultado.classList.remove("oculto");
+  resultado.innerHTML = "Sincronizando com o Google Drive, isso pode levar um tempo dependendo da quantidade de arquivos...";
+
+  try {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    const res = await fetch(SYNC_FUNCTION_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        apikey: SUPABASE_ANON_KEY
+      }
+    });
+
+    const dados = await res.json();
+
+    if (!dados.ok) {
+      resultado.innerHTML = `<strong>Erro na sincronização:</strong> ${dados.erro}`;
+      return;
+    }
+
+    let html = `
+      <strong>Sincronização concluída.</strong><br>
+      Novos: ${dados.novos} &nbsp;·&nbsp;
+      Atualizados: ${dados.atualizados} &nbsp;·&nbsp;
+      Sem alterações: ${dados.sem_alteracao} &nbsp;·&nbsp;
+      Inativados: ${dados.inativados} &nbsp;·&nbsp;
+      Erros: ${dados.erros.length}
+    `;
+
+    if (dados.erros.length) {
+      html += `<ul class="erros-sync">${dados.erros.map(e => `<li>${e.arquivo}: ${e.erro}</li>`).join("")}</ul>`;
+    }
+
+    resultado.innerHTML = html;
+    abrirAdmin();
+  } catch (err) {
+    resultado.innerHTML = `<strong>Erro de conexão:</strong> ${err.message}`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Sincronizar legislações";
+  }
+}
+
+async function carregarUltimaSincronizacao() {
+  const resultado = document.getElementById("resultadoSincronizacao");
+
+  const { data } = await supabaseClient
+    .from("sincronizacoes")
+    .select("*")
+    .order("executada_em", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!data) { resultado.classList.add("oculto"); return; }
+
+  const data_ = new Date(data.executada_em);
+  const dataFormatada = data_.toLocaleDateString("pt-BR") + " " + data_.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+  let html = `
+    <strong>Última sincronização:</strong> ${dataFormatada}<br>
+    Novos: ${data.novos} &nbsp;·&nbsp;
+    Atualizados: ${data.atualizados} &nbsp;·&nbsp;
+    Sem alterações: ${data.sem_alteracao} &nbsp;·&nbsp;
+    Inativados: ${data.inativados} &nbsp;·&nbsp;
+    Erros: ${(data.erros || []).length}
+  `;
+  if (data.erros && data.erros.length) {
+    html += `<ul class="erros-sync">${data.erros.map(e => `<li>${e.arquivo}: ${e.erro}</li>`).join("")}</ul>`;
+  }
+
+  resultado.innerHTML = html;
+  resultado.classList.remove("oculto");
 }
 
 // ---------- RELAÇÕES ENTRE LEGISLAÇÕES ----------
