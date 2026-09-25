@@ -345,3 +345,8 @@ main { max-width: 760px; margin: 0 auto; padding: 0 1.5rem 3rem; }
 }
 .resultado-sincronizacao .erros-sync { color: var(--seal); margin-top: 0.4rem; }
 .resultado-sincronizacao .erros-sync li { margin-left: 1.1rem; }
+
+.rotulo-inativo {
+  background: var(--seal); color: var(--paper);
+  font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 2px; margin-left: 0.4rem;
+}
